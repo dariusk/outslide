@@ -1,0 +1,207 @@
+<html lang="en">
+  
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=1024" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>OutSlide</title>
+    <meta name="description" content="this is pretty much an abomination, but it amuses me greatly"
+    />
+    <meta name="author" content="Bartek Szopka" />
+    <link href="http://fonts.googleapis.com/css?family=Open+Sans:regular,semibold,italic,italicsemibold|PT+Sans:400,700,400italic,700italic|PT+Serif:400,700,400italic,700italic"
+    rel="stylesheet" />
+    <link href="css/impress-demo.css" rel="stylesheet" />
+    <link rel="shortcut icon" href="favicon.png" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
+    <script type="text/javascript">
+      jQuery.noConflict();
+    </script>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script src="speakClient.js"></script>
+    <style type="text/css">
+      h1 {
+        font-size: 2.5em;
+        margin-bottom:20px;
+      }
+      #main {
+        background-color: white;
+        padding: 25px;
+        width: 840px;
+        margin-left: -56px;
+        font-size:0.45em;
+        line-height:1.2em;
+      }
+      #main p {
+        margin-top:10px;
+      }
+      #slidesLeftLabel {
+        position:absolute;
+        margin-left:400px;
+        margin-top:-30px;
+      }
+      #share {
+        color:#00d;
+      }
+      #generate {
+        height: 30px;
+        width: 70px;
+        text-transform: uppercase;
+      }
+      #advance {
+        height: 30px;
+      }
+      #newSlideContent {
+        margin-top:10px;
+        width:500px;
+        height:300px;
+      }
+    </style>
+  </head>
+  
+  <body class="impress-not-supported">
+    <div id="audio"></div>
+    <!-- For example this fallback message is only visible when there
+    is `impress-not-supported` class on body. -->
+    <div class="fallback-message">
+      <p>Your browser <b>doesn't support the features required</b> by impress.js,
+        so you are presented with a simplified version of this presentation.</p>
+      <p>For the best experience please use the latest <b>Chrome</b>, <b>Safari</b> or <b>Firefox</b> browser.</p>
+    </div>
+    <div id="impress">
+      <div class="step slide" data-x="0" data-y="-1500">
+        <div id="slidesLeftLabel">
+          Slides left to process: <span id="slidesLeft">0</span>
+        </div>
+        <div id="main">
+          <h1>Enter an outline. Generate some slides.</h1>
+          <p>For example:
+            <br>presentations suck
+            <br>let's automate them
+            <br>hooray</p>
+          <textarea value="" id="newSlideContent"></textarea>
+          <br>
+          <button id="generate">submit</button>
+          <a href="" id="share">copy/paste this link to share after you submit</a>
+
+          <p>
+            <input type="checkbox" id="speak" />I'm so lazy I can't even be bothered to speak&nbsp;&nbsp;
+            <button id="advance">Fuck it, let's not kid ourselves, we might as well auto-advance slides</button>
+            <input type="text" id="time" value="5" style="width:30px;" />seconds</p>
+            <p style="margin-right:300px;">by <a href="http://tinysubversions.com">Darius Kazemi</a>. Made with
+              <a
+              href="https://github.com/bartaz/impress.js/">impress.js</a>. I hacked this together really quickly. It's probably broken.
+                It's meant as a joke--OR IS IT??? I mean, you could start with this and
+                then edit the presentation later to your liking, provided you understand
+                how to use <a href="https://github.com/bartaz/impress.js/">impress.js</a>.
+                <p>
+                  <strong>IF IT DOESN'T WORK, RELOAD AND TRY AGAIN.</strong><br>
+                  <strong style="color:red">WORKS IN CHROME/FIREFOX/SAFARI</strong>
+                </p>
+                </p>
+            </p>
+        </div>
+      </div>
+    </div>
+    <div class="hint">
+      <p>Use a spacebar or arrow keys to navigate</p>
+    </div>
+    <script>
+      if ("ontouchstart" in document.documentElement) {
+        document.querySelector(".hint").innerHTML = "<p>Tap on the left or right to navigate</p>";
+      }
+    </script>
+    <script src="js/impress.js"></script>
+    <script>
+      impress().init();
+    </script>
+    <script type="text/javascript">
+      var intr;
+      jQuery("#advance").click(function () {
+        window.impress().next();
+        intr = setInterval(function () {
+          window.impress().next();
+          if (jQuery(".active").attr("id") === "step-1") {
+            clearInterval(intr);
+          }
+        }, 1000 * parseFloat(jQuery("#time").val()));
+      });
+      slides = 0;
+      google.load("search", "1");
+
+      function makeSlide() {
+        if (imageSearch.results && imageSearch.results.length > 0) {
+          console.log(searchTerm, imageSearch.results[0].unescapedUrl);
+          window.impress().addSlide(searchTerm, imageSearch.results[0].unescapedUrl);
+          slides -= 1;
+          jQuery("#slidesLeft").text(slides);
+          if (slides == 0) {
+            jQuery("#generate").removeAttr("disabled").text("SUBMIT");
+          }
+        }
+      }
+
+      function OnLoad() {
+        imageSearch = new google.search.ImageSearch();
+        imageSearch.setSearchCompleteCallback(this, makeSlide, null);
+      }
+      google.setOnLoadCallback(OnLoad);
+
+      function gup(name) {
+        name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+        var regexS = "[\\?&]" + name + "=([^&#]*)";
+        var regex = new RegExp(regexS);
+        var results = regex.exec(window.location.href);
+        if (results === null) {
+          return null
+        }
+        else {
+          return decodeURIComponent(results[1].replace("%A", "\n"));
+        }
+      }
+
+      var result = gup("outline");
+      if (result != null) {
+        var outline = "";
+        result.split("@@").forEach(function (a) {
+          outline += a;
+          outline += "\n";
+        });
+        jQuery('#newSlideContent').val(jQuery.trim(outline));
+      }
+
+
+      jQuery("#generate").click(function () {
+        jQuery("#generate").attr("disabled", "disabled").text("wait...");
+        var count = 0;
+        slideArray = jQuery('#newSlideContent').val().split('\n');
+        for(var i=0;i<slideArray.length;i+=1) {
+          if (slideArray[i]==="") {
+            slideArray.splice(i,1);
+          }  
+        }
+        slides = slideArray.length;
+        jQuery('#share').attr('href', '?outline=' + jQuery('#newSlideContent').val().replace(/\n/g, '@@'));
+        jQuery('#newSlideContent').val().split('\n').forEach(function (a) {
+          setTimeout(function () {
+            searchTerm = a;
+            imageSearch.execute(searchTerm);
+          }, count);
+          count += 2000;
+          });
+      });
+
+    </script>
+    <script type="text/javascript">
+      var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+      document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+      try {
+        var pageTracker = _gat._getTracker("UA-339043-1");
+        pageTracker._trackPageview();
+      } catch (err) {}
+    </script>
+  </body>
+
+</html>
